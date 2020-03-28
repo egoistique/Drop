@@ -26,10 +26,13 @@ public class GameScreen implements Screen {
 	Texture dropImage;
 	Texture brickImage;
 	Texture bucketImage;
-	Rectangle brokenbc;
+	Texture brokenImage;
+	Texture overImage;
 	Sound dropSound;
 	Music rainMusic;
 	Rectangle bucket;
+	Rectangle brokenbc;
+	Rectangle brick;
 	Vector3 touchPos;
 	Array<Rectangle> raindrops;
 	Array<Rectangle> bricks;
@@ -50,6 +53,8 @@ public class GameScreen implements Screen {
 		dropImage = new Texture("droplet.png");
 		bucketImage = new Texture("bucket.png");
 		brickImage = new Texture("brick.png");
+		brokenImage = new Texture("brokenbc.png");
+		overImage = new Texture("gameover.png");
 
 		dropSound = Gdx.audio.newSound(Gdx.files.internal("waterdrop.wav"));
 		rainMusic = Gdx.audio.newMusic(Gdx.files.internal("undertreeinrain.mp3"));
@@ -58,10 +63,10 @@ public class GameScreen implements Screen {
 		rainMusic.play();
 
 		bucket = new Rectangle();
-		bucket.x = 800 / 2 - 64 /2;
+		bucket.x = 800 / 2 - 70 /2;
 		bucket.y = 20;
-		bucket.width = 64;
-		bucket.height = 64;
+		bucket.width = 70;
+		bucket.height = 70;
 
 		brokenbc = new Rectangle();
 		brokenbc.x = 800 / 2 - 64 /2;
@@ -97,7 +102,7 @@ public class GameScreen implements Screen {
 
 	@Override
 	public void render (float delta) {
-		Gdx.gl.glClearColor(0, 0, 0.2f, 1);
+		Gdx.gl.glClearColor(0, 0, 0.2f, 0.8f);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
 		camera.update();
@@ -119,14 +124,14 @@ public class GameScreen implements Screen {
 		if (Gdx.input.isTouched()){
 			touchPos.set(Gdx.input.getX(),Gdx.input.getY(), 0);
 			camera.unproject(touchPos);
-			bucket.x = (int) (touchPos.x-64 / 2);
+			bucket.x = (int) (touchPos.x-70 / 2);
 		}
 
 		if(Gdx.input.isKeyJustPressed((Input.Keys.LEFT))) bucket.x -=200 * Gdx.graphics.getDeltaTime();
 		if(Gdx.input.isKeyJustPressed((Input.Keys.RIGHT))) bucket.x +=200 * Gdx.graphics.getDeltaTime();
 
 		if(bucket.x <0) bucket.x = 0;
-		if(bucket.x >800 - 64) bucket.x = 800-64;
+		if(bucket.x >800 - 70) bucket.x = 800-70;
 
 		if(TimeUtils.nanoTime() - lastDropTime > 500000000) spawnRaindrop();
 		if(TimeUtils.nanoTime() - lastBrickTime > 1000000000) spawnBrick();
@@ -147,15 +152,29 @@ public class GameScreen implements Screen {
 		while (iter1.hasNext()){
 			Rectangle brick = iter1.next();
 			brick.y -=  (200 * Gdx.graphics.getDeltaTime());
-			if(brick.y + 64< 0) iter1.remove();
+			if(brick.y + 70< 0) iter1.remove();
 			if (brick.overlaps(bucket)){
 				//вызывать гейм овер и картинку разбитого ведра
+				game.batch.begin();
+				game.batch.draw(brokenImage, bucket.x, bucket.y);
+				game.batch.draw(overImage,50, 200);
+				game.batch.end();
 				dropSound.play();
+				
 				iter1.remove();
+				break;
 			}
 		}
 
 	}
+
+//	public collides(Rectangle brick){
+//		game.batch.begin();
+//		game.batch.draw(brokenImage, bucket.x, bucket.y);
+//		game.batch.draw(overImage,50, 200);
+//		game.batch.end();
+////		return brick.overlaps(bucket);
+//	}
 
 	@Override
 	public void resize(int width, int height) {
@@ -184,6 +203,8 @@ public class GameScreen implements Screen {
 		dropSound.dispose();
 		rainMusic.dispose();
 		brickImage.dispose();
+		overImage.dispose();
+		brokenImage.dispose();
 	}
 
 	@Override
